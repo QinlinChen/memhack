@@ -95,7 +95,8 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 int cmd_pause() {
     if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
         unix_error("Ptrace attach error");
-    printf("wait: %d\n", wait(NULL));
+    if ((wait(NULL) != G.pid))
+        app_error("Wait error");
     printf("Pause: executed\n");
     return 0;
 }
