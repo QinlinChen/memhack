@@ -4,6 +4,7 @@
 #include <sys/ptrace.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 #define MAXLINE 1024
 
@@ -112,20 +113,28 @@ int cmd_resume() {
 }
 
 long get_data(void *addr) {
+    errno = 0;
     long data = ptrace(PTRACE_PEEKDATA, G.pid, addr, NULL);
-    printf("data %lx\n", data);
+    if (errno != 0)
+        unix_error("Ptrace get data error");
     return data;
 }
 
+void set_data(void *addr, void *data) {
+    if (ptrace(PTRACE_POKEDATA, G.pid, addr, data) == -1)
+        unix_error(Ptrace set data error);
+}
+
 int cmd_lookup() {
-    char *arg = strtok(NULL, " ");
-    if (arg == NULL) {
-        printf("Usage: lookup <number>\n");
-        return 0;
-    }
+    // char *arg = strtok(NULL, " ");
+    // if (arg == NULL) {
+    //     printf("Usage: lookup <number>\n");
+    //     return 0;
+    // }
     
-    long number = atol(arg);
-    get_data((void *)number);
+    // long number = atol(arg);
+
+    printf("data %lx\n", get_data((void *)0x601044));
 
     //printf("lookup: %d executed\n", number);
     return 0;
@@ -138,9 +147,10 @@ int cmd_setup() {
         return 0;
     }
 
-    int number = atoi(arg);
+    long number = atol(arg);
+
+    set_data((void *)0x601044, (void *)number);
     printf("setup: %d executed\n", number);
- 
     return 0;
 }
 
