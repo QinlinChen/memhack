@@ -91,26 +91,26 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 }
 
 int cmd_pause() {
-    printf("pause: executed");
+    printf("pause: executed\n");
     return 0;
 }
 
 int cmd_resume() {
-    printf("resume: executed");
+    printf("resume: executed\n");
     return 0;
 }
 
 int cmd_lookup() {
-    printf("lookup: executed");
+    printf("lookup: executed\n");
     return 0;
 }
 
 int cmd_setup() {
-    printf("setup: executed");
+    printf("setup: executed\n");
     return 0;
 }
 
 int cmd_exit() {
-    printf("exit: executed");
+    printf("exit: executed\n");
     return -1;
 }
