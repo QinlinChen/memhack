@@ -95,8 +95,10 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 int cmd_pause() {
     if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
         unix_error("Ptrace attach error");
+
     if ((wait(NULL) != G.pid))
         app_error("Wait error");
+
     printf("Pause: executed\n");
     return 0;
 }
@@ -104,20 +106,29 @@ int cmd_pause() {
 int cmd_resume() {
     if (ptrace(PTRACE_DETACH, G.pid, NULL, NULL) == -1)
         unix_error("Ptrace detach error");
+
     printf("Resume: executed\n");
     return 0;
 }
 
+long getdata(void *addr) {
+    long data = ptrace(PTRACE_PEEKDATA, G.pid, addr, NULL);
+    printf("data %x\n", data);
+    return data;
+}
+
 int cmd_lookup() {
-    char *arg = strtok(NULL, " ");
-    if (arg == NULL) {
-        printf("Usage: lookup <number>\n");
-        return 0;
-    }
+    // char *arg = strtok(NULL, " ");
+    // if (arg == NULL) {
+    //     printf("Usage: lookup <number>\n");
+    //     return 0;
+    // }
+    
+    // int number = atoi(arg);
 
-    int number = atoi(arg);
+
+    getdata((void *)0x400614);
     printf("lookup: %d executed\n", number);
-
     return 0;
 }
 
