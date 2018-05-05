@@ -136,7 +136,7 @@ int cmd_lookup() {
 
     printf("data %lx\n", get_data((void *)0x601044));
 
-    //printf("lookup: %d executed\n", number);
+    //printf("lookup: %ld executed\n", number);
     return 0;
 }
 
@@ -150,7 +150,7 @@ int cmd_setup() {
     long number = atol(arg);
 
     set_data((void *)0x601044, (void *)number);
-    printf("setup: %d executed\n", number);
+    printf("setup: %ld executed\n", number);
     return 0;
 }
 
