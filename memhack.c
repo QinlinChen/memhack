@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ptrace.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define MAXLINE 1024
 
@@ -32,7 +34,7 @@ struct {
 
 /* main */
 struct {
-    int pid;
+    pid_t pid;
 } G;
 
 int main(int argc, char *argv[]) {
@@ -93,14 +95,14 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 int cmd_pause() {
     if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
         unix_error("Ptrace attach error");
+    printf("wait: %d\n", wait(NULL));
     printf("Pause: executed\n");
     return 0;
 }
 
 int cmd_resume() {
     if (ptrace(PTRACE_DETACH, G.pid, NULL, NULL) == -1)
-        unix_error("Ptrace attach error");
-    wait(NULL);
+        unix_error("Ptrace detach error");
     printf("Resume: executed\n");
     return 0;
 }
