@@ -93,7 +93,7 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 int cmd_pause() {
     printf("pause: executed\n");
     if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
-        unix_error("Fail to attach process!");
+        unix_error("Ptrace attach error");
     return 0;
 }
 
