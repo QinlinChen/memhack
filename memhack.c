@@ -104,12 +104,20 @@ int cmd_lookup() {
 
     int number = atoi(arg);
     printf("lookup: %d executed\n", number);
-    
+
     return 0;
 }
 
 int cmd_setup() {
-    printf("setup: executed\n");
+    char *arg = strtok(NULL, " ");
+    if (arg == NULL) {
+        printf("Usage: setup <number>\n");
+        return 0;
+    }
+
+    int number = atoi(arg);
+    printf("setup: %d executed\n", number);
+ 
     return 0;
 }
 
