@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ptrace.h>
 
 #define MAXLINE 1024
 
@@ -30,15 +31,19 @@ struct {
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
 
 /* main */
+struct {
+    int pid;
+} G;
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         printf("Usage: %s PID\n", argv[0]);
         return 1;
     }
     
-    int pid = atoi(argv[1]);
+    G.pid = atoi(argv[1]);
+
     char line[MAXLINE];
-    
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
         char *cmd = strtok(line, " ");
         if (cmd == NULL)
@@ -87,6 +92,8 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 
 int cmd_pause() {
     printf("pause: executed\n");
+    if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
+        unix_error("Fail to attach process!");
     return 0;
 }
 
