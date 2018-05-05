@@ -122,7 +122,7 @@ long get_data(void *addr) {
 
 void set_data(void *addr, void *data) {
     if (ptrace(PTRACE_POKEDATA, G.pid, addr, data) == -1)
-        unix_error(Ptrace set data error);
+        unix_error("Ptrace set data error");
 }
 
 int cmd_lookup() {
