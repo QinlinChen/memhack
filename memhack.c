@@ -125,7 +125,7 @@ int cmd_lookup() {
     }
     
     long number = atol(arg);
-    getdata((void *)number);
+    get_data((void *)number);
 
     //printf("lookup: %d executed\n", number);
     return 0;
