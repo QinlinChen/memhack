@@ -10,6 +10,25 @@ void unix_error(const char *msg);
 void app_error(const char *msg);
 char *readline(const char *prompt, char *buf, int size, FILE *stream);
 
+/* cmd */
+void cmd_pause();
+void cmd_resume();
+void cmd_lookup();
+void cmd_setup();
+void cmd_exit();
+
+static struct {
+    const char *name;
+    void (*handler)();
+} cmd_table [] = {
+    { "pause", cmd_pause },
+    { "resume", cmd_resume },
+    { "lookup", cmd_lookup },
+	{ "setup", cmd_setup },
+	{ "exit", cmd_exit },
+};
+
+/* main */
 int main(int argc, char *argv[]) {
     if (argc != 2)
         show_usage(argv[0]);
@@ -19,7 +38,11 @@ int main(int argc, char *argv[]) {
 
     char line[MAXLINE];
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
-        printf("%s\n", line);
+        char *cmd = strtok(line, " ");
+        while (cmd != NULL) {
+            printf("%s\n", cmd);
+            cmd = strtok(NULL, " ");
+        }
     }
     
 
@@ -58,4 +81,24 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
     }
 
     return ret_val;
+}
+
+void cmd_pause() {
+
+}
+
+void cmd_resume() {
+
+}
+
+void cmd_lookup() {
+
+}
+
+void cmd_setup() {
+
+}
+
+void cmd_exit() {
+
 }
