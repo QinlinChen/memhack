@@ -11,15 +11,15 @@ void app_error(const char *msg);
 char *readline(const char *prompt, char *buf, int size, FILE *stream);
 
 /* cmd */
-void cmd_pause();
-void cmd_resume();
-void cmd_lookup();
-void cmd_setup();
-void cmd_exit();
+int cmd_pause();
+int cmd_resume();
+int cmd_lookup();
+int cmd_setup();
+int cmd_exit();
 
-static struct {
+struct {
     const char *name;
-    void (*handler)();
+    int (*handler)();
 } cmd_table [] = {
     { "pause", cmd_pause },
     { "resume", cmd_resume },
@@ -27,6 +27,8 @@ static struct {
 	{ "setup", cmd_setup },
 	{ "exit", cmd_exit },
 };
+
+#define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
 
 /* main */
 int main(int argc, char *argv[]) {
@@ -39,13 +41,18 @@ int main(int argc, char *argv[]) {
     char line[MAXLINE];
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
         char *cmd = strtok(line, " ");
-        while (cmd != NULL) {
-            printf("%s\n", cmd);
-            cmd = strtok(NULL, " ");
+        if (cmd == NULL)
+            continue;
+        
+        for (int i = 0; i < NR_CMD; ++i) {
+            if (strcmp(cmd, cmd_table[i].name == 0)) {
+                if (cmd_table[i].handler() < 0)
+                    return 0;
+                break;
+            }
         }
     }
     
-
     return 0;
 }
 
@@ -83,22 +90,27 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
     return ret_val;
 }
 
-void cmd_pause() {
-
+int cmd_pause() {
+    printf("pause: executed");
+    return 0;
 }
 
-void cmd_resume() {
-
+int cmd_resume() {
+    printf("resume: executed");
+    return 0;
 }
 
-void cmd_lookup() {
-
+int cmd_lookup() {
+    printf("lookup: executed");
+    return 0;
 }
 
-void cmd_setup() {
-
+int cmd_setup() {
+    printf("setup: executed");
+    return 0;
 }
 
-void cmd_exit() {
-
+int cmd_exit() {
+    printf("exit: executed");
+    return -1;
 }
