@@ -23,8 +23,8 @@ struct {
     { "pause", cmd_pause },
     { "resume", cmd_resume },
     { "lookup", cmd_lookup },
-	{ "setup", cmd_setup },
-	{ "exit", cmd_exit },
+    { "setup", cmd_setup },
+    { "exit", cmd_exit },
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
@@ -122,6 +122,5 @@ int cmd_setup() {
 }
 
 int cmd_exit() {
-    printf("exit: executed\n");
     return -1;
 }
