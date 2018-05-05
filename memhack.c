@@ -128,7 +128,7 @@ int cmd_lookup() {
 
 
     getdata((void *)0x400614);
-    printf("lookup: %d executed\n", number);
+    //printf("lookup: %d executed\n", number);
     return 0;
 }
 
