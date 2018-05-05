@@ -91,14 +91,17 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
 }
 
 int cmd_pause() {
-    printf("pause: executed\n");
     if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
         unix_error("Ptrace attach error");
+    printf("Pause: executed\n");
     return 0;
 }
 
 int cmd_resume() {
-    printf("resume: executed\n");
+    if (ptrace(PTRACE_DETACH, G.pid, NULL, NULL) == -1)
+        unix_error("Ptrace attach error");
+    wait(NULL);
+    printf("Resume: executed\n");
     return 0;
 }
 
