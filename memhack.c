@@ -111,23 +111,22 @@ int cmd_resume() {
     return 0;
 }
 
-long getdata(void *addr) {
+long get_data(void *addr) {
     long data = ptrace(PTRACE_PEEKDATA, G.pid, addr, NULL);
     printf("data %lx\n", data);
     return data;
 }
 
 int cmd_lookup() {
-    // char *arg = strtok(NULL, " ");
-    // if (arg == NULL) {
-    //     printf("Usage: lookup <number>\n");
-    //     return 0;
-    // }
+    char *arg = strtok(NULL, " ");
+    if (arg == NULL) {
+        printf("Usage: lookup <number>\n");
+        return 0;
+    }
     
-    // int number = atoi(arg);
-
-
-    getdata((void *)0x400614);
+    int number = atoi(arg);
+    getdata((void *)number);
+    
     //printf("lookup: %d executed\n", number);
     return 0;
 }
