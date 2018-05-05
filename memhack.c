@@ -113,7 +113,7 @@ int cmd_resume() {
 
 long getdata(void *addr) {
     long data = ptrace(PTRACE_PEEKDATA, G.pid, addr, NULL);
-    printf("data %x\n", data);
+    printf("data %lx\n", data);
     return data;
 }
 
