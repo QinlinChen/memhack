@@ -5,7 +5,6 @@
 #define MAXLINE 1024
 
 /* utilities */
-void show_usage(const char *name);
 void unix_error(const char *msg);
 void app_error(const char *msg);
 char *readline(const char *prompt, char *buf, int size, FILE *stream);
@@ -32,13 +31,14 @@ struct {
 
 /* main */
 int main(int argc, char *argv[]) {
-    if (argc != 2)
-        show_usage(argv[0]);
+    if (argc != 2) {
+        printf("Usage: %s PID\n", argv[0]);
+        return 1;
+    }
     
     int pid = atoi(argv[1]);
-    printf("pid: %d\n", pid);
-
     char line[MAXLINE];
+    
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
         char *cmd = strtok(line, " ");
         if (cmd == NULL)
@@ -54,11 +54,6 @@ int main(int argc, char *argv[]) {
     }
     
     return 0;
-}
-
-void show_usage(const char *name) {
-    printf("Usage: %s PID\n", name);
-    exit(1);
 }
 
 void unix_error(const char *msg) {
@@ -101,7 +96,15 @@ int cmd_resume() {
 }
 
 int cmd_lookup() {
-    printf("lookup: executed\n");
+    char *arg = strtok(NULL, " ");
+    if (arg == NULL) {
+        printf("Usage: lookup <number>\n");
+        return 0;
+    }
+
+    int number = atoi(arg);
+    printf("lookup: %d executed\n", number);
+    
     return 0;
 }
 
