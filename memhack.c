@@ -33,9 +33,22 @@ struct {
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
 
-/* main */
+/* list */
+typedef struct _node_t {
+    char *addr;
+    struct _node_t *prev;
+    struct _node_t *next;
+} node_t;
+
+typedef struct _list_t {
+    node_t NIL;
+    int size;
+} list_t;
+
+/* global */
 struct {
     pid_t pid;
+    list_t list;
 } G;
 
 int main(int argc, char *argv[]) {
@@ -44,8 +57,20 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     
+    // initialize
     G.pid = atoi(argv[1]);
-
+    init_list(&G.list);
+    print_list(&G.list);
+    add_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+    add_list(&G.list, (char *)0x200);
+    print_list(&G.list);
+    add_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+    filter_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+    
+    // begin
     char line[MAXLINE];
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
         char *cmd = strtok(line, " ");
@@ -91,6 +116,50 @@ char *readline(const char *prompt, char *buf, int size, FILE *stream) {
     }
 
     return ret_val;
+}
+
+void init_list(list_t *list) {
+    list->NIL.addr = NULL;
+    list->size = 0;
+    list->NIL.next = list->NIL.prev = &list->NIL;
+}
+
+void add_list(list_t *list, char *addr) {
+    node_t *node = (node_t *)malloc(sizeof(node_t));
+    node->addr = addr;
+    node->next = list->NIL.next;
+    list->NIL.next->prev = node;
+    list->NIL.next = node;
+    node->prev = &list->NIL;
+    list->size += 1;
+}
+
+void remove_list(list_t *list, node_t *node) {
+    node->prev->next = node->next;
+    node->next->prev = node->prev;
+    free(node);
+    list->size -= 1;
+}
+
+void filter_list(list_t *list, char *addr) {
+    node_t *scan = list->NIL.next;
+    while (scan != &list->NIL) {
+        if (scan->addr == addr) {
+            scan = scan->prev;
+            remove_list(list, scan->next);
+        }
+        scan = scan->next;
+    }
+}
+
+void print_list(list_t *list) {
+    printf("list:\n");
+    node_t *scan = list->NIL.next;
+    while (scan != &list->NIL) {
+        assert(scan->next->prev == scan);
+        printf("addr: %p\n", scan->addr);
+        scan = scan->next;
+    }
 }
 
 int cmd_pause() {
