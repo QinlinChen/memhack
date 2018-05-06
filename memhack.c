@@ -186,10 +186,9 @@ void print_list(list_t *list, pid_t pid) {
         // Attention: memory alignment
         char *addr_end = (char *)
             (((long)scan->addr & ~(sizeof(long) - 1)) + sizeof(long));
-        for (char *addr = addr_end; addr != scan->addr; addr--) {
+        for (char *addr = addr_end; addr != scan->addr - 1; addr--) {
             ptrace_read(pid, addr, &byte, sizeof(byte));
             data = (data << (sizeof(byte) * 8)) + byte;
-            printf("%lx %x\n", data, byte);
         }
         printf("%-16p %-5d %-5d %-10d\n", scan->addr, 
             (char)data, (short)data, (int)data);
