@@ -262,6 +262,6 @@ int cmd_setup() {
     long number = atol(arg);
 
     ptrace_pokedata(G.pid, (void *)0x601044, number);
-    printf("Success\n", number);
+    printf("Success\n");
     return 0;
 }
