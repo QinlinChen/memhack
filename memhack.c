@@ -268,10 +268,8 @@ void init_area() {
     FILE *fp;
 
     /* initialize regex */
-    rc = regcomp(&reg, 
-        "([0-9a-fA-F]+)\\-([0-9a-fA-f]+)\\s+[rwxps-]+\\s+"
-        "[0-9a-fA-F]+\\s+[0-9a-fA-F]+:[0-9a-fA-F]+\\s+"
-        "[0-9]+\\s+.*",
+    rc = regcomp(&reg, "([0-9a-fA-F]+)\\-([0-9a-fA-f]+)\\s+[rwxps-]+\\s+"
+        "[0-9a-fA-F]+\\s+[0-9a-fA-F]+:[0-9a-fA-F]+\\s+[0-9]+\\s+.*",
         REG_EXTENDED);
     if (rc != 0) {
         regerror(rc, &reg, errbuf, MAXLINE);
@@ -298,6 +296,7 @@ void init_area() {
         G.area[G.nr_area].end = (char *)regmatch_htol(line, match + 2);
         printf("Area added: %p-%p\n", G.area[G.nr_area].start,
             G.area[G.nr_area].end);
+        G.nr_area++;
     }
 
     if (fclose(fp) != 0)
@@ -326,18 +325,30 @@ int cmd_exit() {
 }
 
 int cmd_lookup() {
-    // char *arg = strtok(NULL, " ");
-    // if (arg == NULL) {
-    //     printf("Usage: lookup <number>\n");
-    //     return 0;
-    // }
-    // long number = atol(arg);
-    char buf[1024];
-    ptrace_read(G.pid, (void *)0x601044, buf, 16);
-    for (int i = 0; i < 16; ++i) {
-        printf("%.2x ", buf[i]);
+    char *arg = strtok(NULL, " ");
+    if (arg == NULL) {
+        printf("Usage: lookup <number>\n");
+        return 0;
     }
-    printf("\n");
+
+    long number = atol(arg);
+    char lower_byte = *(char *)&number;
+
+    for (int i = 0; i < G.nr_area; ++i) {
+        for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
+            char byte;
+            ptrace_read(G.pid, addr, &byte, sizeof(byte));
+            if (byte == lower_byte)
+                add_list(&G.list, addr);
+        }
+    }
+    print_list(&G.list);
+    // char buf[1024];
+    // ptrace_read(G.pid, (void *)0x601044, buf, 16);
+    // for (int i = 0; i < 16; ++i) {
+    //     printf("%.2x ", buf[i]);
+    // }
+    // printf("\n");
 
     // printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
     
