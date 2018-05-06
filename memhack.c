@@ -45,6 +45,12 @@ typedef struct _list_t {
     int size;
 } list_t;
 
+void init_list(list_t *list);
+void add_list(list_t *list, char *addr);
+void remove_list(list_t *list, node_t *node);
+void filter_list(list_t *list, char *addr);
+void print_list(list_t *list);
+
 /* global */
 struct {
     pid_t pid;
@@ -69,7 +75,7 @@ int main(int argc, char *argv[]) {
     print_list(&G.list);
     filter_list(&G.list, (char *)0x100);
     print_list(&G.list);
-    
+
     // begin
     char line[MAXLINE];
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
