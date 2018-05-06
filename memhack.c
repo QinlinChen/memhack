@@ -52,6 +52,10 @@ void remove_list(list_t *list, node_t *node);
 void filter_list(list_t *list, char *addr);
 void print_list(list_t *list);
 
+/* ptrace wrap */
+long ptrace_peekdata(pid_t pid, void *addr);
+void ptrace_pokedata(pid_t pid, void *addr, long data);
+
 /* global */
 struct {
     pid_t pid;
@@ -160,6 +164,19 @@ void print_list(list_t *list) {
     }
 }
 
+long ptrace_peekdata(pid_t pid, void *addr) {
+    errno = 0;
+    long data = ptrace(PTRACE_PEEKDATA, pid, addr, NULL);
+    if (errno != 0)
+        unix_error("Ptrace get data error");
+    return data;
+}
+
+void ptrace_pokedata(pid_t pid, void *addr, long data) {
+    if (ptrace(PTRACE_POKEDATA, pid, addr, (void *)data) == -1)
+        unix_error("Ptrace set data error");
+}
+
 int cmd_pause() {
     if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
         unix_error("Ptrace attach error");
@@ -179,17 +196,8 @@ int cmd_resume() {
     return 0;
 }
 
-long get_data(void *addr) {
-    errno = 0;
-    long data = ptrace(PTRACE_PEEKDATA, G.pid, addr, NULL);
-    if (errno != 0)
-        unix_error("Ptrace get data error");
-    return data;
-}
-
-void set_data(void *addr, void *data) {
-    if (ptrace(PTRACE_POKEDATA, G.pid, addr, data) == -1)
-        unix_error("Ptrace set data error");
+int cmd_exit() {
+    return -1;
 }
 
 int cmd_lookup() {
@@ -201,7 +209,7 @@ int cmd_lookup() {
     
     // long number = atol(arg);
 
-    printf("data %lx\n", get_data((void *)0x601044));
+    printf("data %lx\n", ptrace_peekdata(G.pid, (void *)0x601044));
 
     //printf("lookup: %ld executed\n", number);
     return 0;
@@ -216,11 +224,7 @@ int cmd_setup() {
 
     long number = atol(arg);
 
-    set_data((void *)0x601044, (void *)number);
+    ptrace_pokedata(G.pid, (void *)0x601044, number);
     printf("setup: %ld executed\n", number);
     return 0;
-}
-
-int cmd_exit() {
-    return -1;
 }
