@@ -112,7 +112,9 @@ void app_error(const char *msg) {
 char *readline(const char *prompt, char *buf, int size, FILE *stream) {
     char *ret_val, *find;
 
-    printf("%s", prompt);
+    if (prompt)
+        printf("%s", prompt);
+
     if (((ret_val = fgets(buf, size, stream)) == NULL) && ferror(stream))
         app_error("readline error");
 
@@ -233,9 +235,11 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
 }
 
 void init_areas() {
-    char errbuf[MAXLINE];
+    char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
+    int rc;
     regex_t reg;
-    
+    regmatch_t match[3];
+    FILE *fp;
     /* initialize regex */
     int rc = regcomp(&reg, 
         "(\\w+)\\(.*\\)\\s*=.+<([0-9]+\\.[0-9]+)>",
@@ -247,18 +251,16 @@ void init_areas() {
     }
 
     /* open file */
-    char filepath[MAXLINE];
-    FILE *fp;
+    
 
     sprintf(filepath, "/proc/%d/maps", G.pid);
     if ((fp = fopen(filepath, "r")) == NULL)
         app_error("Fail to open file");
 
     /* read syscall info */
-    char line[MAXLINE];
-    regmatch_t match[3];
+    
 
-    while (fgets(line, MAXLINE, fp) != NULL) {
+    while (readline(NULL, line, MAXLINE, fp) != NULL) {
         puts(line);
         // if (regexec(&reg, line, 3, match, 0) == 0) {
 
