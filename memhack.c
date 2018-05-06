@@ -360,7 +360,7 @@ void init_area() {
                 continue;
 
             char *pathname = substr(line, match[4].rm_so, match[4].rm_eo);
-            if (pathname == NULL && is_so(pathname))
+            if (pathname == NULL || is_so(pathname))
                 continue;
 
             char *start = (char *)hex_to_dec(
