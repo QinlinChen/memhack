@@ -68,6 +68,7 @@ struct {
 
 struct {
     pid_t pid;
+    long last_lookup_number;
     list_t list;
     struct {
         char *start;
@@ -86,6 +87,7 @@ int main(int argc, char *argv[]) {
     
     // initialize
     G.pid = atoi(argv[1]);
+    G.last_lookup_number = 0;
     init_list(&G.list);
     init_area();
 
@@ -381,8 +383,9 @@ int cmd_lookup() {
         return 0;
     }
     long number = atol(arg);
+    G.last_lookup_number = number;
     char lower_byte = *(char *)&number;
-
+    
     /* First search: add address to list */
     if (G.list.size == 0) {
         for (int i = 0; i < G.nr_area; ++i) {
@@ -405,6 +408,18 @@ int cmd_lookup() {
     return 0;
 }
 
+static size_t guess_variable_size(pid_t pid, char *addr, long expected) {
+    long data = ptrace_bound_peekdata(pid, addr);
+    if (data == expected)
+        return sizeof(long);
+    if ((int)data == (int)expected)
+        return sizeof(int);
+    if ((short)data == (short)expected)
+        return sizeof(short);
+    if ((char)data == (char)expected)
+        return sizeof(char);
+}
+
 int cmd_setup() {
     char *arg = strtok(NULL, " ");
     if (arg == NULL) {
@@ -420,10 +435,10 @@ int cmd_setup() {
         return 0;
     }
 
-    long size = atol(strtok(NULL, " "));
-
-    ptrace_write(G.pid, G.list.NIL.next->addr, &number, size);
-
-    printf("Modify success!\n");
+    char *addr = G.list.NIL.next->addr;
+    size_t size = guess_variable_size(G.pid, addr, G.last_lookup_number);
+    ptrace_write(G.pid, addr, &number, size);
+    printf("Modify success! (We guess the varible you want to modify"
+        "has %d bytes\n", size);
     return 0;
 }
