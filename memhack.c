@@ -242,7 +242,7 @@ int cmd_lookup() {
     printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
     long number = atol(arg);
     char buf[1024];
-    ptrace_read(G.pid, (void *)0x4005f6, buf, number);
+    ptrace_read(G.pid, (void *)0x601044, buf, number);
 
     for (int i = 0; i < number; ++i) {
         printf("%x ", buf[i]);
