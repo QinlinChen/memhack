@@ -78,6 +78,7 @@ struct {
         char *end;
     } area[MAX_AREA];
     int nr_area;
+    int is_attached;
 } G;
 
 void init_area();
@@ -392,16 +393,21 @@ int cmd_pause() {
     if ((wait(NULL) != G.pid))
         app_error("Wait error");
 
+    G.is_attached = 1;
     return 0;
 }
 
 int cmd_resume() {
     ptrace_detach(G.pid);
-
+    G.is_attached = 0;
     return 0;
 }
 
 int cmd_exit() {
+    if (G.is_attached) {
+        ptrace_detach(G.pid);
+        G.is_attached = 0;
+    }   
     return -1;
 }
 
@@ -412,6 +418,11 @@ static int filter_pred(char *addr, char lower_byte) {
 }
 
 int cmd_lookup() {
+    if (!G.is_attached) {
+        printf("You should use PAUSE command to stop process first\n");
+        return 0;
+    }
+
     char *arg = strtok(NULL, " ");
     if (arg == NULL) {
         printf("Usage: lookup <number>\n");
@@ -457,6 +468,11 @@ static size_t guess_variable_size(pid_t pid, char *addr, long expected) {
 }
 
 int cmd_setup() {
+    if (!G.is_attached) {
+        printf("You should use PAUSE command to stop process first\n");
+        return 0;
+    }
+
     char *arg = strtok(NULL, " ");
     if (arg == NULL) {
         printf("Usage: setup <number>\n");
