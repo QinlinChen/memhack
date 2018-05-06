@@ -362,23 +362,24 @@ int cmd_lookup() {
     }
 
     long number = atol(arg);
-    char lower_byte = *(char *)&number;
+    // char lower_byte = *(char *)&number;
 
-    for (int i = 0; i < G.nr_area; ++i) {
-        for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
-            char byte;
-            ptrace_read(G.pid, addr, &byte, sizeof(byte));
-            if (byte == lower_byte) 
-                add_list(&G.list, addr);
-        }
-    }
-    print_list(&G.list);
-    // char buf[1024];
-    // ptrace_read(G.pid, (void *)0x601044, buf, 16);
-    // for (int i = 0; i < 16; ++i) {
-    //     printf("%.2x ", buf[i]);
+    // for (int i = 0; i < G.nr_area; ++i) {
+    //     for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
+    //         char byte;
+    //         ptrace_read(G.pid, addr, &byte, sizeof(byte));
+    //         if (byte == lower_byte) 
+    //             add_list(&G.list, addr);
+    //     }
     // }
-    // printf("\n");
+    // print_list(&G.list);
+
+    char buf[1024];
+    ptrace_read(G.pid, (void *)0x601ff0, buf, 16);
+    for (int i = 0; i < 16; ++i) {
+        printf("%.2x ", buf[i]);
+    }
+    printf("\n");
 
     // printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
     
@@ -396,7 +397,7 @@ int cmd_setup() {
     long number = atol(arg);
     long size = atol(strtok(NULL, " "));
 
-    ptrace_write(G.pid, (void *)0x601044, &number, size);
+    ptrace_write(G.pid, (void *)0x601ffa, &number, size);
 
     printf("Success\n");
     return 0;
