@@ -241,7 +241,7 @@ int cmd_lookup() {
     
     long number = atol(arg);
     char *buf = (char *)malloc(sizeof(char) * number);
-    ptrace_read(G.pid, 0x4005f6, buf, number);
+    ptrace_read(G.pid, (void *)0x4005f6, buf, number);
 
     for (int i = 0; i < number; ++i) {
         printf("%x ", buf[i]);
