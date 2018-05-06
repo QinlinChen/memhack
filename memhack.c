@@ -242,20 +242,20 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
     char *src = (char *)buf;
     char *dst = (char *)addr;
 
-    // char *aligned = dst - (long)dst % sizeof(long);
-    // if (aligned != dst) {
-    //     long data = ptrace_peekdata(pid, aligned);
-    //     size_t lsize = dst - aligned;
-    //     size_t rsize = sizeof(long) - lsize;
-    //     size_t minsize = (rsize < size ? rsize : size);
-    //     memcpy((char *)&data + lsize, src, minsize);
-    //     ptrace_pokedata(pid, aligned, data);
-    //     if (minsize == size)
-    //         return;
-    //     size -= minsize;
-    //     dst += minsize;
-    //     src += minsize;
-    // }
+    char *aligned = dst - (long)dst % sizeof(long);
+    if (aligned != dst) {
+        long data = ptrace_peekdata(pid, aligned);
+        size_t lsize = dst - aligned;
+        size_t rsize = sizeof(long) - lsize;
+        size_t minsize = (rsize < size ? rsize : size);
+        memcpy((char *)&data + lsize, src, minsize);
+        ptrace_pokedata(pid, aligned, data);
+        if (minsize == size)
+            return;
+        size -= minsize;
+        dst += minsize;
+        src += minsize;
+    }
 
     while (size >= sizeof(long)) {
         ptrace_pokedata(pid, dst, *(long *)src);
