@@ -301,19 +301,6 @@ long ptrace_bound_peekdata(pid_t pid, void *addr) {
     return (long)data;
 }
 
-static long regmatch_htol(char *str, regmatch_t *match) {
-    char buf[17];
-    int end = 0;
-    for (int i = match->rm_so; i < match->rm_eo; ++i)
-        buf[end++] = str[i];
-    buf[end++] = '\0';
-    assert(end <= 17);
-
-    long ret;
-    sscanf(buf, "%lx", &ret);
-    return ret;
-}
-
 void print_regmatch(char *str, regmatch_t *match) {
     if (match->rm_so == match->rm_eo)
         printf("null");
@@ -321,6 +308,12 @@ void print_regmatch(char *str, regmatch_t *match) {
         for (int i = match->rm_so; i < match->rm_eo; ++i)
             putchar(str[i]);
     putchar('\n');
+}
+
+static long hex_to_dec(char *str) {
+    long ret;
+    sscanf(str, "%lx", &ret);
+    return ret;
 }
 
 static char *substr(char *str, int so, int eo) {
@@ -334,27 +327,9 @@ static char *substr(char *str, int so, int eo) {
     return ret;
 }
 
-static int is_readable(char *str, int so, int eo) {
-    for (int i = so; i < eo; ++i)
-        if (str[i] == 'r')
-            return 1;
-    return 0;
-}
-
-static int is_writable(char *str, int so, int eo) {
-    for (int i = so; i < eo; ++i)
-        if (str[i] == 'w')
-            return 1;
-    return 0;
-}
-
-static int is_not_anonymous(char *str, int so, int eo) {
-    return so != eo;
-}
-
-static int is_not_so(char *str, int so, int eo) {
-    return 1;
-}
+static int is_readable(char *str) { return strchr(str, 'r') != NULL; }
+static int is_writable(char *str) { return strchr(str, 'w') != NULL; }
+static int is_so(char *str)  { return strstr(str, ".so") != NULL; } 
 
 void init_area() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
@@ -380,13 +355,18 @@ void init_area() {
     /* match and add to area*/
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
         if (regexec(&reg, line, 5, match, 0) == 0) {
-            puts(substr(line, match[1].rm_so, match[1].rm_eo));
-            
-            print_regmatch(line, match + 2);
-            print_regmatch(line, match + 3);
-            print_regmatch(line, match + 4);
-            char *start = (char *)regmatch_htol(line, match + 1);
-            char *end = regmatch_htol(line, match + 2);
+            char *perms = substr(line, match[3].rm_so, match[3].rm_eo);
+            if (!(is_readable(perms) && is_writable(perms)))
+                continue;
+
+            char *pathname = substr(line, match[4].rm_so, match[4].rm_eo);
+            if (pathname == NULL && is_so(pathname))
+                continue;
+
+            char *start = (char *)hex_to_dec(
+                substr(line, match[1].rm_so, match[1].rm_eo));
+            char *end = (char *)hex_to_dec(
+                substr(line, match[2].rm_so, match[2].rm_eo));
             add_area(start, end);
             printf("Area added: %p-%p\n", start, end); 
         }
