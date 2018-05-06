@@ -339,8 +339,11 @@ int cmd_lookup() {
             char byte;
             printf("addr %p\n", addr);
             ptrace_read(G.pid, addr, &byte, sizeof(byte));
-            if (byte == lower_byte)
+            if (byte == lower_byte) {
                 add_list(&G.list, addr);
+                break;
+            }
+                
         }
     }
     print_list(&G.list);
