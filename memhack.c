@@ -176,7 +176,7 @@ void print_list(list_t *list, pid_t pid) {
     printf("Find %d result(s).\n", list->size);
     if (list->size == 0)
         return;
-    printf("%-16s %-4s %-5s %-10s", 
+    printf("%-16s %-4s %-5s %-10s\n", 
         "ADDRESS", "BYTE", "WORD", "DWORD");
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
