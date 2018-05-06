@@ -210,19 +210,19 @@ void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
     char *src = (char *)addr;
     char *dst = (char *)buf;
 
-    // char *aligned = src - (long)addr % sizeof(long);
-    // if (aligned != addr) {
-    //     long data = ptrace_peekdata(pid, aligned);
-    //     size_t lsize = src - aligned;
-    //     size_t rsize = sizeof(long) - lsize;
-    //     size_t minsize = (rsize < size ? rsize : size);
-    //     memcpy(dst, (char *)&data + lsize, minsize);
-    //     if (minsize == size)
-    //         return;
-    //     size -= minsize;
-    //     src += minsize;
-    //     dst += minsize;
-    // }
+    char *aligned = src - (long)addr % sizeof(long);
+    if (aligned != addr) {
+        long data = ptrace_peekdata(pid, aligned);
+        size_t lsize = src - aligned;
+        size_t rsize = sizeof(long) - lsize;
+        size_t minsize = (rsize < size ? rsize : size);
+        memcpy(dst, (char *)&data + lsize, minsize);
+        if (minsize == size)
+            return;
+        size -= minsize;
+        src += minsize;
+        dst += minsize;
+    }
     
     while (size >= sizeof(long)) {
         *(long *)dst = ptrace_peekdata(pid, src);
