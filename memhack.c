@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     print_list(&G.list);
     add_list(&G.list, (char *)0x100);
     print_list(&G.list);
-    add_list(&G.list, (char *)0x200);
+    add_list(&G.list, (char *)0x100);
     print_list(&G.list);
     add_list(&G.list, (char *)0x100);
     print_list(&G.list);
