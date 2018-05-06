@@ -14,6 +14,52 @@ void unix_error(const char *msg);
 void app_error(const char *msg);
 char *readline(const char *prompt, char *buf, int size, FILE *stream);
 
+/* list */
+typedef struct _node_t {
+    char *addr;
+    struct _node_t *prev;
+    struct _node_t *next;
+} node_t;
+
+typedef struct _list_t {
+    node_t NIL;
+    int size;
+} list_t;
+
+void init_list(list_t *list);
+void add_list(list_t *list, char *addr);
+void remove_list(list_t *list, node_t *node);
+void filter_list(list_t *list, char *addr);
+void print_list(list_t *list);
+
+/* ptrace wrapper */
+void ptrace_attach(pid_t pid);
+void ptrace_detach(pid_t pid);
+long ptrace_peekdata(pid_t pid, void *addr);
+void ptrace_pokedata(pid_t pid, void *addr, long data);
+
+void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
+    assert(size > 0);
+    char *src = (char *)addr;
+    char *dst = (char *)buf;
+
+    while (size - sizeof(long) >= 0) {
+        *(long *)dst = ptrace_peekdata(pid, src);
+        size -= sizeof(long);
+        dst += sizeof(long);
+        src += sizeof(long);
+    }
+
+    if (size > 0) {
+        long data = ptrace_peekdata(pid, src);
+        memcpy(dst, &data, size);
+    }
+}
+
+void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
+
+}
+
 /* cmd */
 int cmd_pause();
 int cmd_resume();
@@ -33,28 +79,6 @@ struct {
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
-
-/* list */
-typedef struct _node_t {
-    char *addr;
-    struct _node_t *prev;
-    struct _node_t *next;
-} node_t;
-
-typedef struct _list_t {
-    node_t NIL;
-    int size;
-} list_t;
-
-void init_list(list_t *list);
-void add_list(list_t *list, char *addr);
-void remove_list(list_t *list, node_t *node);
-void filter_list(list_t *list, char *addr);
-void print_list(list_t *list);
-
-/* ptrace wrap */
-long ptrace_peekdata(pid_t pid, void *addr);
-void ptrace_pokedata(pid_t pid, void *addr, long data);
 
 /* global */
 struct {
@@ -164,35 +188,43 @@ void print_list(list_t *list) {
     }
 }
 
+void ptrace_attach(pid_t pid) {
+    if (ptrace(PTRACE_ATTACH, pid, NULL, NULL) == -1)
+        unix_error("Ptrace attach error");
+}
+
+void ptrace_detach(pid_t pid) {
+    if (ptrace(PTRACE_DETACH, pid, NULL, NULL) == -1)
+        unix_error("Ptrace detach error");
+}
+
 long ptrace_peekdata(pid_t pid, void *addr) {
     errno = 0;
     long data = ptrace(PTRACE_PEEKDATA, pid, addr, NULL);
-    if (errno != 0)
-        unix_error("Ptrace get data error");
+    if (data == -1 && errno != 0)
+        unix_error("Ptrace peekdata error");
     return data;
 }
 
 void ptrace_pokedata(pid_t pid, void *addr, long data) {
     if (ptrace(PTRACE_POKEDATA, pid, addr, (void *)data) == -1)
-        unix_error("Ptrace set data error");
+        unix_error("Ptrace pokedata error");
 }
 
 int cmd_pause() {
-    if (ptrace(PTRACE_ATTACH, G.pid, NULL, NULL) == -1)
-        unix_error("Ptrace attach error");
+    ptrace_attach(G.pid);
 
     if ((wait(NULL) != G.pid))
         app_error("Wait error");
 
-    printf("Pause: executed\n");
+    printf("Success\n");
     return 0;
 }
 
 int cmd_resume() {
-    if (ptrace(PTRACE_DETACH, G.pid, NULL, NULL) == -1)
-        unix_error("Ptrace detach error");
+    ptrace_detach(G.pid);
 
-    printf("Resume: executed\n");
+    printf("Success\n");
     return 0;
 }
 
@@ -201,15 +233,20 @@ int cmd_exit() {
 }
 
 int cmd_lookup() {
-    // char *arg = strtok(NULL, " ");
-    // if (arg == NULL) {
-    //     printf("Usage: lookup <number>\n");
-    //     return 0;
-    // }
+    char *arg = strtok(NULL, " ");
+    if (arg == NULL) {
+        printf("Usage: lookup <number>\n");
+        return 0;
+    }
     
-    // long number = atol(arg);
+    long number = atol(arg);
+    char *buf = (char *)malloc(sizeof(char) * number);
+    ptrace_read(G.pid, 0x4005f6, buf, number);
 
-    printf("data %lx\n", ptrace_peekdata(G.pid, (void *)0x601044));
+    for (int i = 0; i < number; ++i) {
+        printf("%x ", buf[i]);
+    }
+    printf("\n");
 
     //printf("lookup: %ld executed\n", number);
     return 0;
@@ -225,6 +262,6 @@ int cmd_setup() {
     long number = atol(arg);
 
     ptrace_pokedata(G.pid, (void *)0x601044, number);
-    printf("setup: %ld executed\n", number);
+    printf("Success\n", number);
     return 0;
 }
