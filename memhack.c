@@ -185,7 +185,6 @@ void print_list(list_t *list, pid_t pid) {
     int count = 0;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
-        printf("%p\n", scan->addr);
         long data = ptrace_bound_peekdata(pid, scan->addr);
         printf("%-16p %-5d %-5d %-10d %-16ld\n", scan->addr, 
             (char)data, (short)data, (int)data, (long)data);
@@ -294,7 +293,7 @@ long ptrace_bound_peekdata(pid_t pid, void *addr) {
     
     char *addr_end = (char *)
         (((long)addr & ~(sizeof(long) - 1)) + sizeof(long));
-    for (char *p = addr_end; p != (char *)addr - 1; p--) {
+    for (char *p = addr_end - 1; p != (char *)addr - 1; p--) {
         ptrace_read(pid, p, &byte, sizeof(byte));
         data = (data << (sizeof(byte) * 8)) + byte;
     }
