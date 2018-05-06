@@ -414,7 +414,7 @@ int cmd_setup() {
 
     long size = atol(strtok(NULL, " "));
 
-    ptrace_write(G.pid, G.list.NIL.next, &number, 4);
+    ptrace_write(G.pid, G.list.NIL.next, &number, size);
 
     printf("Modify success!\n");
     return 0;
