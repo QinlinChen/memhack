@@ -286,7 +286,7 @@ void init_areas() {
     /* match and add to area*/
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
         if (regexec(&reg, line, 3, match, 0) == 0) {
-            printf("%lx-%lx", regmatch_htol(line, match + 1),
+            printf("%lx-%lx\n", regmatch_htol(line, match + 1),
                 regmatch_htol(line, match + 2));
         }
     }
