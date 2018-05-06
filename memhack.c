@@ -62,9 +62,16 @@ struct {
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
 
 /* global */
+#define MAX_AREA 10
+
 struct {
     pid_t pid;
     list_t list;
+    struct {
+        char *start;
+        char *end;
+    } area[MAX_AREA];
+    int nr_area;
 } G;
 
 void init_areas();
@@ -240,16 +247,29 @@ void print_match(char *str, regmatch_t *match) {
     putchar('\n');
 }
 
+static long regmatch_htol(char *str, regmatch_t *match) {
+    char buf[17];
+    int end = 0;
+    for (int i = match->rm_so; i < match->rm_eo; ++i)
+        buf[end++] = str[i];
+    buf[end++] = '\0';
+    assert(end <= 17);
+
+    long ret;
+    sscanf(buf, "%lx", &ret);
+    return ret;
+}
+
 void init_areas() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
     int rc;
     regex_t reg;
-    regmatch_t match[1];
+    regmatch_t match[3];
     FILE *fp;
 
     /* initialize regex */
     rc = regcomp(&reg, 
-        "[0-9a-fA-F]+\\-[0-9a-fA-f]+\\s+[rwxps-]+\\s+"
+        "([0-9a-fA-F]+)\\-([0-9a-fA-f]+)\\s+[rwxps-]+\\s+"
         "[0-9a-fA-F]+\\s+[0-9a-fA-F]+:[0-9a-fA-F]+\\s+"
         "[0-9]+\\s+.*",
         REG_EXTENDED);
@@ -259,17 +279,20 @@ void init_areas() {
         exit(1);
     }
 
-    /* open file */
     sprintf(filepath, "/proc/%d/maps", G.pid);
     if ((fp = fopen(filepath, "r")) == NULL)
         app_error("Fail to open file");
 
-    /* read syscall info */
+    /* match and add to area*/
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
-        if (regexec(&reg, line, 1, match, 0) == 0) {
-            print_match(line, match);
+        if (regexec(&reg, line, 3, match, 0) == 0) {
+            printf("%lx-%lx", regmatch_htol(line, match + 1),
+                regmatch_htol(line, match + 2));
         }
     }
+
+    if (fclose(fp) != 0)
+        app_error("Fail to close file");
 }
 
 int cmd_pause() {
