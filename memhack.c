@@ -176,8 +176,8 @@ void print_list(list_t *list, pid_t pid) {
     printf("Find %d result(s).\n", list->size);
     if (list->size == 0)
         return;
-    printf("%-16s %-5s %-5s %-10s\n", 
-        "ADDRESS", "BYTE", "WORD", "DWORD");
+    printf("%-16s %-5s %-5s %-10s %-16s\n", 
+        "ADDRESS", "BYTE", "WORD", "DWORD", "QWORD");
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
@@ -190,8 +190,8 @@ void print_list(list_t *list, pid_t pid) {
             ptrace_read(pid, addr, &byte, sizeof(byte));
             data = (data << (sizeof(byte) * 8)) + byte;
         }
-        printf("%-16p %-5d %-5d %-10d\n", scan->addr, 
-            (char)data, (short)data, (int)data);
+        printf("%-16p %-5d %-5d %-10d %-16d\n", scan->addr, 
+            (char)data, (short)data, (int)data, (long)data);
         scan = scan->next;
     }
 }
