@@ -223,9 +223,9 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
 
     if (size != 0) {
         long data = ptrace_peekdata(pid, dst);
-        printf("before data: %lx, size: %d", size);
+        printf("before data: %lx, size: %d", data, size);
         memcpy(&data, src, size);
-        printf("after data: %lx, size: %d", size);
+        printf("after data: %lx, size: %d", data, size);
         ptrace_pokedata(pid, dst, data);
     }
 }
