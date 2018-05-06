@@ -384,7 +384,7 @@ int cmd_lookup() {
     }
     
     /* show result */
-    print_list(&G.list);
+    print_list(&G.list, G.pid);
 
     // char buf[1024];
     // ptrace_read(G.pid, (void *)0x601ff0, buf, 16);
