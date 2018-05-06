@@ -418,6 +418,7 @@ static size_t guess_variable_size(pid_t pid, char *addr, long expected) {
         return sizeof(short);
     if ((char)data == (char)expected)
         return sizeof(char);
+    return 0;
 }
 
 int cmd_setup() {
@@ -437,8 +438,15 @@ int cmd_setup() {
 
     char *addr = G.list.NIL.next->addr;
     size_t size = guess_variable_size(G.pid, addr, G.last_lookup_number);
+    if (size == 0)  {
+        printf("The variable in the result list is probably not "
+            "the one you want to modify!");
+        return 0;
+    }
+
     ptrace_write(G.pid, addr, &number, size);
     printf("Modify success! (We guess the varible you want to modify"
-        "has %ud bytes\n", size);
+        "has %u bytes\n", size);
+        
     return 0;
 }
