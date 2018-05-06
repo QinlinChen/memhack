@@ -67,7 +67,16 @@ int main(int argc, char *argv[]) {
     // initialize
     G.pid = atoi(argv[1]);
     init_list(&G.list);
-    
+    print_list(&G.list);
+    add_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+    add_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+    add_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+    filter_list(&G.list, (char *)0x100);
+    print_list(&G.list);
+
     // begin
     char line[MAXLINE];
     while (readline("(memheck) ", line, MAXLINE, stdin) != NULL) {
@@ -151,7 +160,7 @@ void filter_list(list_t *list, char *addr) {
 }
 
 void print_list(list_t *list) {
-    printf("list:\n");
+    printf("list size: %d\n", list->size);
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
