@@ -446,7 +446,7 @@ int cmd_setup() {
 
     ptrace_write(G.pid, addr, &number, size);
     printf("Modify success! (We guess the varible you want to modify"
-        "has %u bytes\n", size);
-        
+        "has %lu bytes\n", size);
+
     return 0;
 }
