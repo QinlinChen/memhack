@@ -223,9 +223,7 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
 
     if (size != 0) {
         long data = ptrace_peekdata(pid, dst);
-        printf("before data: %lx, size: %d", data, size);
         memcpy(&data, src, size);
-        printf("after data: %lx, size: %d", data, size);
         ptrace_pokedata(pid, dst, data);
     }
 }
@@ -283,14 +281,6 @@ int cmd_setup() {
 
     printf("number %ld, size %ld\n", number, size);
     ptrace_write(G.pid, (void *)0x601044, &number, size);
-    ptrace_pokedata(G.pid, (void *)0x601044, number);
-    
-    char buf[1024];
-    ptrace_read(G.pid, (void *)0x601044, buf, 16);
-    for (int i = 0; i < 16; ++i) {
-        printf("%.2x ", buf[i]);
-    }
-    printf("\n");
 
     printf("Success\n");
     return 0;
