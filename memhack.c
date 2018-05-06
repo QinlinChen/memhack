@@ -74,7 +74,7 @@ struct {
     int nr_area;
 } G;
 
-void init_areas();
+void init_area();
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     // initialize
     G.pid = atoi(argv[1]);
     init_list(&G.list);
-    init_areas();
+    init_area();
 
     // begin
     char line[MAXLINE];
@@ -260,7 +260,7 @@ static long regmatch_htol(char *str, regmatch_t *match) {
     return ret;
 }
 
-void init_areas() {
+void init_area() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
     int rc;
     regex_t reg;
@@ -284,11 +284,20 @@ void init_areas() {
         app_error("Fail to open file");
 
     /* match and add to area*/
-    while (readline(NULL, line, MAXLINE, fp) != NULL) {
-        if (regexec(&reg, line, 3, match, 0) == 0) {
-            printf("%lx-%lx\n", regmatch_htol(line, match + 1),
-                regmatch_htol(line, match + 2));
-        }
+    // while (readline(NULL, line, MAXLINE, fp) != NULL) {
+    //     if (regexec(&reg, line, 3, match, 0) == 0) {
+    //         printf("%lx-%lx\n", regmatch_htol(line, match + 1),
+    //             regmatch_htol(line, match + 2));
+    //     }
+    // }
+    readline(NULL, line, MAXLINE, fp);
+    readline(NULL, line, MAXLINE, fp);
+    readline(NULL, line, MAXLINE, fp);
+    if (regexec(&reg, line, 3, match, 0) == 0) {
+        G.area[G.nr_area].start = (char *)regmatch_htol(line, match + 1);
+        G.area[G.nr_area].end = (char *)regmatch_htol(line, match + 2);
+        printf("Area added: %p-%p\n", G.area[G.nr_area].start,
+            G.area[G.nr_area].end);
     }
 
     if (fclose(fp) != 0)
