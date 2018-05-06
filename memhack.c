@@ -38,10 +38,7 @@ void ptrace_detach(pid_t pid);
 long ptrace_peekdata(pid_t pid, void *addr);
 void ptrace_pokedata(pid_t pid, void *addr, long data);
 void ptrace_read(pid_t pid, void *addr, void *buf, size_t size);
-
-void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
-
-}
+void ptrace_write(pid_t pid, void *addr, void *buf, size_t size);
 
 /* cmd */
 int cmd_pause();
@@ -212,6 +209,25 @@ void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
     }
 }
 
+void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
+    assert(size > 0);
+    char *src = (char *)buf;
+    char *dst = (char *)addr;
+
+    while (size >= sizeof(long)) {
+        ptrace_pokedata(pid, dst, *(long *)src);
+        size -= sizeof(long);
+        dst += sizeof(long);
+        src += sizeof(long);
+    }
+
+    if (size != 0) {
+        long data = ptrace_peekdata(pid, dst);
+        memcpy(&data, src, size);
+        ptrace_pokedata(pid, dst, data);
+    }
+}
+
 int cmd_pause() {
     ptrace_attach(G.pid);
 
@@ -234,22 +250,14 @@ int cmd_exit() {
 }
 
 int cmd_lookup() {
-    char *arg = strtok(NULL, " ");
-    if (arg == NULL) {
-        printf("Usage: lookup <number>\n");
-        return 0;
-    }
-    
+    // char *arg = strtok(NULL, " ");
+    // if (arg == NULL) {
+    //     printf("Usage: lookup <number>\n");
+    //     return 0;
+    // }
+    // long number = atol(arg);
     printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
-    long number = atol(arg);
-    char buf[1024];
-    ptrace_read(G.pid, (void *)0x4005f6, buf, number);
-
-    for (int i = 0; i < number; ++i) {
-        printf("%.2x ", buf[i]);
-    }
-    printf("\n");
-
+    
     //printf("lookup: %ld executed\n", number);
     return 0;
 }
@@ -262,8 +270,18 @@ int cmd_setup() {
     }
 
     long number = atol(arg);
+    long size = atol(strtok(NULL, " "));
 
+    ptrace_write(G.pid, (void *)0x601044, &number, size);
     ptrace_pokedata(G.pid, (void *)0x601044, number);
+    
+    char buf[1024];
+    ptrace_read(G.pid, (void *)0x601044, buf, 16);
+    for (int i = 0; i < number; ++i) {
+        printf("%.2x ", buf[i]);
+    }
+    printf("\n");
+
     printf("Success\n");
     return 0;
 }
