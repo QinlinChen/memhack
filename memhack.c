@@ -455,7 +455,7 @@ int cmd_setup() {
 
     if (G.list.size != 1) {
         printf("You are suppose to use lookup command to "
-            "filter results until one qualified address left.");
+            "filter results until one qualified address left.\n");
         return 0;
     }
 
