@@ -346,7 +346,7 @@ void init_area() {
 
     /* match and add to area*/
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
-        if (regexec(&reg, line, 3, match, 0) == 0) {
+        if (regexec(&reg, line, 5, match, 0) == 0) {
             print_regmatch(line, match + 1);
             print_regmatch(line, match + 2);
             print_regmatch(line, match + 3);
