@@ -78,6 +78,7 @@ struct {
 } G;
 
 void init_area();
+void add_area(char *start, char *end);
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
@@ -313,16 +314,25 @@ static long regmatch_htol(char *str, regmatch_t *match) {
     return ret;
 }
 
+void print_regmatch(char *str, regmatch_t *match) {
+    if (match->rm_so == match->rm_eo)
+        printf("null");
+    else
+        for (int i = match->rm_so; i < match->rm_eo; ++i)
+            putchar(str[i]);
+    putchar('\n');
+}
+
 void init_area() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
     int rc;
     regex_t reg;
-    regmatch_t match[3];
+    regmatch_t match[5];
     FILE *fp;
 
     /* initialize regex */
-    rc = regcomp(&reg, "([0-9a-fA-F]+)\\-([0-9a-fA-f]+)\\s+[rwxps-]+\\s+"
-        "[0-9a-fA-F]+\\s+[0-9a-fA-F]+:[0-9a-fA-F]+\\s+[0-9]+\\s+.*",
+    rc = regcomp(&reg, "([0-9a-fA-F]+)\\-([0-9a-fA-f]+)\\s+([rwxps-]+)\\s+"
+        "[0-9a-fA-F]+\\s+[0-9a-fA-F]+:[0-9a-fA-F]+\\s+[0-9]+\\s+(.*)",
         REG_EXTENDED);
     if (rc != 0) {
         regerror(rc, &reg, errbuf, MAXLINE);
@@ -335,25 +345,39 @@ void init_area() {
         app_error("Fail to open file");
 
     /* match and add to area*/
-    // while (readline(NULL, line, MAXLINE, fp) != NULL) {
-    //     if (regexec(&reg, line, 3, match, 0) == 0) {
-    //         printf("%lx-%lx\n", regmatch_htol(line, match + 1),
-    //             regmatch_htol(line, match + 2));
-    //     }
-    // }
-    readline(NULL, line, MAXLINE, fp);
-    readline(NULL, line, MAXLINE, fp);
-    readline(NULL, line, MAXLINE, fp);
-    if (regexec(&reg, line, 3, match, 0) == 0) {
-        G.area[G.nr_area].start = (char *)regmatch_htol(line, match + 1);
-        G.area[G.nr_area].end = (char *)regmatch_htol(line, match + 2);
-        printf("Area added: %p-%p\n", G.area[G.nr_area].start,
-            G.area[G.nr_area].end);
-        G.nr_area++;
+    while (readline(NULL, line, MAXLINE, fp) != NULL) {
+        if (regexec(&reg, line, 3, match, 0) == 0) {
+            print_regmatch(line, match + 1);
+            print_regmatch(line, match + 2);
+            print_regmatch(line, match + 3);
+            print_regmatch(line, match + 4);
+            // char *start = (char *)regmatch_htol(line, match + 1);
+            // char *end = regmatch_htol(line, match + 2);
+            // add_area(start, end);
+            // printf("Area added: %p-%p\n", start, end); 
+        }
     }
+
+    // readline(NULL, line, MAXLINE, fp);
+    // readline(NULL, line, MAXLINE, fp);
+    // readline(NULL, line, MAXLINE, fp);
+    // if (regexec(&reg, line, 3, match, 0) == 0) {
+    //     G.area[G.nr_area].start = (char *)regmatch_htol(line, match + 1);
+    //     G.area[G.nr_area].end = (char *)regmatch_htol(line, match + 2);
+    //     printf("Area added: %p-%p\n", G.area[G.nr_area].start,
+    //         G.area[G.nr_area].end);
+    //     G.nr_area++;
+    // }
 
     if (fclose(fp) != 0)
         app_error("Fail to close file");
+}
+
+void add_area(char *start, char *end) {
+    assert(G.nr_area < MAX_AREA);
+    G.area[G.nr_area].start = start;
+    G.area[G.nr_area].end = end;
+    G.nr_area++;
 }
 
 int cmd_pause() {
