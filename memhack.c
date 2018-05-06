@@ -246,7 +246,7 @@ int cmd_lookup() {
     ptrace_read(G.pid, (void *)0x4005f6, buf, number);
 
     for (int i = 0; i < number; ++i) {
-        printf("%02x ", buf[i]);
+        printf("%.2x ", buf[i]);
     }
     printf("\n");
 
