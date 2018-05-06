@@ -31,7 +31,7 @@ typedef struct _list_t {
 void init_list(list_t *list);
 void add_list(list_t *list, char *addr);
 void remove_list(list_t *list, node_t *node);
-void filter_list(list_t *list, char byte);
+void filter_list(list_t *list, char byte, int (*pred)(char *, char));
 void print_list(list_t *list, pid_t pid);
 
 /* ptrace wrapper */
@@ -161,10 +161,10 @@ void remove_list(list_t *list, node_t *node) {
     list->size -= 1;
 }
 
-void filter_list(list_t *list, char byte) {
+void filter_list(list_t *list, char byte, int (*pred)(char *, char)) {
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
-        if (*scan->addr != byte) {
+        if (pred(scan->addr, byte)) {
             scan = scan->prev;
             remove_list(list, scan->next);
         }
@@ -285,12 +285,6 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
     }
 }
 
-void print_match(char *str, regmatch_t *match) {
-    for (int i = match->rm_so; i < match->rm_eo; ++i)
-        putchar(str[i]);
-    putchar('\n');
-}
-
 static long regmatch_htol(char *str, regmatch_t *match) {
     char buf[17];
     int end = 0;
@@ -366,6 +360,12 @@ int cmd_exit() {
     return -1;
 }
 
+static int filter_pred(char *addr, char lower_byte) {
+    char byte;
+    ptrace_read(G.pid, addr, &byte, sizeof(byte));
+    return byte != lower_byte;
+}
+
 int cmd_lookup() {
     char *arg = strtok(NULL, " ");
     if (arg == NULL) {
@@ -388,7 +388,7 @@ int cmd_lookup() {
     } 
     /* Otherwise: filter list according to the lowerbyte of number */
     else {
-        filter_list(&G.list, lower_byte);
+        filter_list(&G.list, lower_byte, filter_pred);
     }
     
     /* show result */
