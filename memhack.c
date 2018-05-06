@@ -439,6 +439,6 @@ int cmd_setup() {
     size_t size = guess_variable_size(G.pid, addr, G.last_lookup_number);
     ptrace_write(G.pid, addr, &number, size);
     printf("Modify success! (We guess the varible you want to modify"
-        "has %d bytes\n", size);
+        "has %ud bytes\n", size);
     return 0;
 }
