@@ -173,11 +173,10 @@ void filter_list(list_t *list, char byte) {
 }
 
 void print_list(list_t *list, pid_t pid) {
-    printf("%d address found.\n", list->size);
+    printf("Find %d result(s).\n", list->size);
     if (list->size == 0)
         return;
-    printf("%16s %4s %5s %10s", 
-        "ADDRESS", "BYTE", "WORD", "DWORD");
+    printf("%-16s %-4s\n", "ADDRESS", "BYTE");
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
