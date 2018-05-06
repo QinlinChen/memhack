@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <assert.h>
+#include <regex.h>
 
 #define MAXLINE 1024
 
@@ -66,6 +67,8 @@ struct {
     list_t list;
 } G;
 
+void init_areas();
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         printf("Usage: %s PID\n", argv[0]);
@@ -75,6 +78,7 @@ int main(int argc, char *argv[]) {
     // initialize
     G.pid = atoi(argv[1]);
     init_list(&G.list);
+    init_areas();
 
     // begin
     char line[MAXLINE];
@@ -225,6 +229,40 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
         long data = ptrace_peekdata(pid, dst);
         memcpy(&data, src, size);
         ptrace_pokedata(pid, dst, data);
+    }
+}
+
+void init_areas() {
+    char errbuf[MAXLINE];
+    regex_t reg;
+    
+    /* initialize regex */
+    int rc = regcomp(&reg, 
+        "(\\w+)\\(.*\\)\\s*=.+<([0-9]+\\.[0-9]+)>",
+        REG_EXTENDED);
+    if (rc != 0) {
+        regerror(rc, &reg, errbuf, MAXLINE);
+        printf("regex compilation failed: %s\n", errbuf);
+        exit(1);
+    }
+
+    /* open file */
+    char filepath[MAXLINE];
+    FILE *fp;
+
+    sprintf(filepath, "/proc/%d/maps", G.pid);
+    if ((fp = fopen(filepath, "r")) == NULL)
+        app_error("Fail to open file");
+
+    /* read syscall info */
+    char line[MAXLINE];
+    regmatch_t match[3];
+
+    while (fgets(line, MAXLINE, fp) != NULL) {
+        puts(line);
+        // if (regexec(&reg, line, 3, match, 0) == 0) {
+
+        // }
     }
 }
 
