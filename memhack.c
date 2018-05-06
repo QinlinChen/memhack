@@ -356,7 +356,7 @@ void init_area() {
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
         if (regexec(&reg, line, 5, match, 0) == 0) {
             char *perms = substr(line, match[3].rm_so, match[3].rm_eo);
-            if (!(is_readable(perms) && is_writable(perms)))
+            if (!is_readable(perms) || !is_writable(perms))
                 continue;
 
             char *pathname = substr(line, match[4].rm_so, match[4].rm_eo);
