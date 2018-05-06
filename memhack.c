@@ -337,6 +337,7 @@ int cmd_lookup() {
     for (int i = 0; i < G.nr_area; ++i) {
         for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
             char byte;
+            printf("addr %p\n", addr);
             ptrace_read(G.pid, addr, &byte, sizeof(byte));
             if (byte == lower_byte)
                 add_list(&G.list, addr);
