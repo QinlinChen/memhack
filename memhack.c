@@ -187,8 +187,7 @@ void print_list(list_t *list, pid_t pid) {
         char *addr_end = (char *)
             (((long)scan->addr & ~(sizeof(long) - 1)) + sizeof(long));
         for (char *addr = scan->addr; addr != addr_end; addr++) {
-            ptrace_read(pid, scan->addr, &byte, sizeof(byte));
-            printf("%x\n", byte);
+            ptrace_read(pid, addr, &byte, sizeof(byte));
             data = (data << (sizeof(byte) * 8)) + byte;
         }
         printf("%-16p %-5d %-5d %-10d\n", scan->addr, 
