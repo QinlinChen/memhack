@@ -279,7 +279,6 @@ int cmd_setup() {
     long number = atol(arg);
     long size = atol(strtok(NULL, " "));
 
-    printf("number %ld, size %ld\n", number, size);
     ptrace_write(G.pid, (void *)0x601044, &number, size);
 
     printf("Success\n");
