@@ -190,7 +190,7 @@ void print_list(list_t *list, pid_t pid) {
             ptrace_read(pid, scan->addr, &byte, sizeof(byte));
             data = (data << (sizeof(byte) * 8)) + byte;
         }
-        printf("%-16p %-4d %-5d %-10d", scan->addr, 
+        printf("%-16p %-4d %-5d %-10d\n", scan->addr, 
             (char)data, (short)data, (int)data);
         scan = scan->next;
     }
