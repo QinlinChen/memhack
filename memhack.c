@@ -199,15 +199,14 @@ void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
     char *src = (char *)addr;
     char *dst = (char *)buf;
 
-    while (size - sizeof(long) >= 0) {
+    while (size >= sizeof(long)) {
         *(long *)dst = ptrace_peekdata(pid, src);
         size -= sizeof(long);
         dst += sizeof(long);
         src += sizeof(long);
     }
 
-    printf("src %p\n", src);
-    if (size > 0) {
+    if (size != 0) {
         long data = ptrace_peekdata(pid, src);
         memcpy(dst, &data, size);
     }
