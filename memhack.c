@@ -249,7 +249,7 @@ void init_areas() {
 
     /* initialize regex */
     rc = regcomp(&reg, 
-        "\\d+\\-\\d+",
+        "\\d+",
         REG_EXTENDED);
     if (rc != 0) {
         regerror(rc, &reg, errbuf, MAXLINE);
