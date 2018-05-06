@@ -67,15 +67,6 @@ int main(int argc, char *argv[]) {
     // initialize
     G.pid = atoi(argv[1]);
     init_list(&G.list);
-    print_list(&G.list);
-    add_list(&G.list, (char *)0x100);
-    print_list(&G.list);
-    add_list(&G.list, (char *)0x100);
-    print_list(&G.list);
-    add_list(&G.list, (char *)0x100);
-    print_list(&G.list);
-    filter_list(&G.list, (char *)0x100);
-    print_list(&G.list);
 
     // begin
     char line[MAXLINE];
