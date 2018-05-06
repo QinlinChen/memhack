@@ -182,12 +182,18 @@ void print_list(list_t *list, pid_t pid) {
     printf("%-16s %-5s %-5s %-10s %-16s\n", 
         "ADDRESS", "BYTE", "WORD", "DWORD", "QWORD");
     node_t *scan = list->NIL.next;
+    int count = 0;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
+        printf("%p\n", scan->addr);
         long data = ptrace_bound_peekdata(pid, scan->addr);
         printf("%-16p %-5d %-5d %-10d %-16ld\n", scan->addr, 
             (char)data, (short)data, (int)data, (long)data);
         scan = scan->next;
+        if (++count > 10) {
+            printf("...\n");
+            return;
+        }
     }
 }
 
