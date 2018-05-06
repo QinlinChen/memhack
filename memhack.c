@@ -31,7 +31,7 @@ typedef struct _list_t {
 void init_list(list_t *list);
 void add_list(list_t *list, char *addr);
 void remove_list(list_t *list, node_t *node);
-void filter_list(list_t *list, char *addr);
+void filter_list(list_t *list, char byte);
 void print_list(list_t *list);
 
 /* ptrace wrapper */
@@ -161,10 +161,10 @@ void remove_list(list_t *list, node_t *node) {
     list->size -= 1;
 }
 
-void filter_list(list_t *list, char *addr) {
+void filter_list(list_t *list, char byte) {
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
-        if (scan->addr == addr) {
+        if (*scan->addr != byte) {
             scan = scan->prev;
             remove_list(list, scan->next);
         }
@@ -339,14 +339,12 @@ int cmd_pause() {
     if ((wait(NULL) != G.pid))
         app_error("Wait error");
 
-    printf("Success\n");
     return 0;
 }
 
 int cmd_resume() {
     ptrace_detach(G.pid);
-
-    printf("Success\n");
+    
     return 0;
 }
 
@@ -360,30 +358,35 @@ int cmd_lookup() {
         printf("Usage: lookup <number>\n");
         return 0;
     }
-
     long number = atol(arg);
-    // char lower_byte = *(char *)&number;
+    char lower_byte = *(char *)&number;
 
-    // for (int i = 0; i < G.nr_area; ++i) {
-    //     for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
-    //         char byte;
-    //         ptrace_read(G.pid, addr, &byte, sizeof(byte));
-    //         if (byte == lower_byte) 
-    //             add_list(&G.list, addr);
-    //     }
-    // }
-    // print_list(&G.list);
-
-    char buf[1024];
-    ptrace_read(G.pid, (void *)0x601ff0, buf, 16);
-    for (int i = 0; i < 16; ++i) {
-        printf("%.2x ", buf[i]);
+    /* First search: add address to list */
+    if (G.list.size == 0) {
+        for (int i = 0; i < G.nr_area; ++i) {
+            for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
+                char byte;
+                ptrace_read(G.pid, addr, &byte, sizeof(byte));
+                if (byte == lower_byte) 
+                    add_list(&G.list, addr);
+            }
+        }
+    } 
+    /* Otherwise: filter list according to the lowerbyte of number */
+    else {
+        filter_list(&G.list, lower_byte);
     }
-    printf("\n");
-
-    // printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
     
-    //printf("lookup: %ld executed\n", number);
+    /* show result */
+    print_list(&G.list);
+
+    // char buf[1024];
+    // ptrace_read(G.pid, (void *)0x601ff0, buf, 16);
+    // for (int i = 0; i < 16; ++i) {
+    //     printf("%.2x ", buf[i]);
+    // }
+    // printf("\n");
+
     return 0;
 }
 
