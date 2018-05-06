@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
         
         cmd_handler_t handler;
         if ((handler = cmd_find_handler(cmd)) == NULL) {
-            printf("This command doesn't exist.");
+            printf("This command doesn't exist.\n");
             continue;
         } 
         
