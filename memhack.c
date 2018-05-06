@@ -301,15 +301,6 @@ long ptrace_bound_peekdata(pid_t pid, void *addr) {
     return (long)data;
 }
 
-void print_regmatch(char *str, regmatch_t *match) {
-    if (match->rm_so == match->rm_eo)
-        printf("null");
-    else
-        for (int i = match->rm_so; i < match->rm_eo; ++i)
-            putchar(str[i]);
-    putchar('\n');
-}
-
 static long hex_to_dec(char *str) {
     long ret;
     sscanf(str, "%lx", &ret);
@@ -368,20 +359,9 @@ void init_area() {
             char *end = (char *)hex_to_dec(
                 substr(line, match[2].rm_so, match[2].rm_eo));
             add_area(start, end);
-            printf("Area added: %p-%p\n", start, end); 
+            printf("Area monitored: %p-%p\n", start, end); 
         }
     }
-
-    // readline(NULL, line, MAXLINE, fp);
-    // readline(NULL, line, MAXLINE, fp);
-    // readline(NULL, line, MAXLINE, fp);
-    // if (regexec(&reg, line, 3, match, 0) == 0) {
-    //     G.area[G.nr_area].start = (char *)regmatch_htol(line, match + 1);
-    //     G.area[G.nr_area].end = (char *)regmatch_htol(line, match + 2);
-    //     printf("Area added: %p-%p\n", G.area[G.nr_area].start,
-    //         G.area[G.nr_area].end);
-    //     G.nr_area++;
-    // }
 
     if (fclose(fp) != 0)
         app_error("Fail to close file");
