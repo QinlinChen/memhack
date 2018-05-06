@@ -394,13 +394,6 @@ int cmd_lookup() {
     /* show result */
     print_list(&G.list, G.pid);
 
-    // char buf[1024];
-    // ptrace_read(G.pid, (void *)0x601ff0, buf, 16);
-    // for (int i = 0; i < 16; ++i) {
-    //     printf("%.2x ", buf[i]);
-    // }
-    // printf("\n");
-
     return 0;
 }
 
@@ -412,10 +405,17 @@ int cmd_setup() {
     }
 
     long number = atol(arg);
+
+    if (G.list.size != 1) {
+        printf("You are suppose to use lookup command to "
+            "filter results until one qualified address left.");
+        return 0;
+    }
+
     long size = atol(strtok(NULL, " "));
 
-    ptrace_write(G.pid, (void *)0x601ffa, &number, size);
+    ptrace_write(G.pid, G.list.NIL.next, &number, 4);
 
-    printf("Success\n");
+    printf("Modify success!\n");
     return 0;
 }
