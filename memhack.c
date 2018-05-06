@@ -323,6 +323,39 @@ void print_regmatch(char *str, regmatch_t *match) {
     putchar('\n');
 }
 
+static char *substr(char *str, int so, int eo) {
+    assert(eo >= so);
+    assert(eo - so < MAXLINE);
+    static char ret[MAXLINE];
+    if (so == eo)
+        return NULL;
+    memcpy(ret, str + so, eo - so);
+    ret[eo - so] = '\0';
+    return ret;
+}
+
+static int is_readable(char *str, int so, int eo) {
+    for (int i = so; i < eo; ++i)
+        if (str[i] == 'r')
+            return 1;
+    return 0;
+}
+
+static int is_writable(char *str, int so, int eo) {
+    for (int i = so; i < eo; ++i)
+        if (str[i] == 'w')
+            return 1;
+    return 0;
+}
+
+static int is_not_anonymous(char *str, int so, int eo) {
+    return so != eo;
+}
+
+static int is_not_so(char *str, int so, int eo) {
+    return 1;
+}
+
 void init_area() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
     int rc;
@@ -347,14 +380,15 @@ void init_area() {
     /* match and add to area*/
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
         if (regexec(&reg, line, 5, match, 0) == 0) {
-            print_regmatch(line, match + 1);
+            puts(substr(line, match[1].rm_so, match[1].rm_eo));
+            
             print_regmatch(line, match + 2);
             print_regmatch(line, match + 3);
             print_regmatch(line, match + 4);
-            // char *start = (char *)regmatch_htol(line, match + 1);
-            // char *end = regmatch_htol(line, match + 2);
-            // add_area(start, end);
-            // printf("Area added: %p-%p\n", start, end); 
+            char *start = (char *)regmatch_htol(line, match + 1);
+            char *end = regmatch_htol(line, match + 2);
+            add_area(start, end);
+            printf("Area added: %p-%p\n", start, end); 
         }
     }
 
