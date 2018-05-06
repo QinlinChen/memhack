@@ -32,7 +32,7 @@ void init_list(list_t *list);
 void add_list(list_t *list, char *addr);
 void remove_list(list_t *list, node_t *node);
 void filter_list(list_t *list, char byte);
-void print_list(list_t *list);
+void print_list(list_t *list, pid_t pid);
 
 /* ptrace wrapper */
 void ptrace_attach(pid_t pid);
@@ -172,12 +172,18 @@ void filter_list(list_t *list, char byte) {
     }
 }
 
-void print_list(list_t *list) {
-    printf("list size: %d\n", list->size);
+void print_list(list_t *list, pid_t pid) {
+    printf("%d address found.\n", list->size);
+    if (list->size == 0)
+        return;
+    printf("%16s %4s %5s %10s", 
+        "ADDRESS", "BYTE", "WORD", "DWORD");
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
-        printf("addr: %p\n", scan->addr);
+        unsigned char byte;
+        ptrace_read(pid, scan->addr, &byte, sizeof(byte));
+        printf("%16p %4x", scan->addr, (unsigned int)byte);
         scan = scan->next;
     }
 }
@@ -344,7 +350,7 @@ int cmd_pause() {
 
 int cmd_resume() {
     ptrace_detach(G.pid);
-    
+
     return 0;
 }
 
