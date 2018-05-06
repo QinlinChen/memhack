@@ -431,7 +431,7 @@ int cmd_lookup() {
     long number = atol(arg);
     G.expected = number;
     char lower_byte = *(char *)&number;
-    
+
     /* First search: add address to list */
     if (G.list.size == 0) {
         for (int i = 0; i < G.nr_area; ++i) {
@@ -482,7 +482,7 @@ int cmd_setup() {
     long number = atol(arg);
 
     if (G.list.size != 1) {
-        printf("You are suppose to use lookup command to "
+        printf("You are suppose to use LOOKUP command to "
             "filter results until one qualified address left.\n");
         return 0;
     }
