@@ -240,8 +240,9 @@ void init_areas() {
     regex_t reg;
     regmatch_t match[3];
     FILE *fp;
+
     /* initialize regex */
-    int rc = regcomp(&reg, 
+    rc = regcomp(&reg, 
         "(\\w+)\\(.*\\)\\s*=.+<([0-9]+\\.[0-9]+)>",
         REG_EXTENDED);
     if (rc != 0) {
@@ -251,15 +252,11 @@ void init_areas() {
     }
 
     /* open file */
-    
-
     sprintf(filepath, "/proc/%d/maps", G.pid);
     if ((fp = fopen(filepath, "r")) == NULL)
         app_error("Fail to open file");
 
     /* read syscall info */
-    
-
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
         puts(line);
         // if (regexec(&reg, line, 3, match, 0) == 0) {
