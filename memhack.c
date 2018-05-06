@@ -44,15 +44,18 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size);
 long ptrace_bound_peekdata(pid_t pid, void *addr);
 
 /* cmd */
+typedef int (*cmd_handler_t)();
+
 int cmd_pause();
 int cmd_resume();
 int cmd_lookup();
 int cmd_setup();
 int cmd_exit();
+cmd_handler_t cmd_find_handler(const char *cmd_name);
 
 struct {
     const char *name;
-    int (*handler)();
+    cmd_handler_t handler;
 } cmd_table [] = {
     { "pause", cmd_pause },
     { "resume", cmd_resume },
@@ -99,12 +102,14 @@ int main(int argc, char *argv[]) {
         if (cmd == NULL)
             continue;
         
-        for (int i = 0; i < NR_CMD; ++i) {
-            if (strcmp(cmd, cmd_table[i].name) == 0) {
-                if (cmd_table[i].handler() < 0)
-                    return 0;
-                break;
-            }
+        cmd_handler_t handler;
+        if ((handler = cmd_find_handler(cmd)) == NULL) {
+            printf("This command doesn't exist.");
+            continue;
+        } 
+        
+        if (handler() < 0) {
+            return 0;
         }
     }
     
@@ -372,6 +377,13 @@ void add_area(char *start, char *end) {
     G.area[G.nr_area].start = start;
     G.area[G.nr_area].end = end;
     G.nr_area++;
+}
+
+cmd_handler_t cmd_find_handler(const char *cmd_name) {
+    for (int i = 0; i < NR_CMD; ++i)
+        if (strcmp(cmd_name, cmd_table[i].name) == 0) 
+            return cmd_table[i].handler;
+    return NULL;
 }
 
 int cmd_pause() {
