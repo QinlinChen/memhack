@@ -249,7 +249,7 @@ void init_areas() {
 
     /* initialize regex */
     rc = regcomp(&reg, 
-        "[0-9]+",
+        "[0-9]+\\-[0-9]+",
         REG_EXTENDED);
     if (rc != 0) {
         regerror(rc, &reg, errbuf, MAXLINE);
