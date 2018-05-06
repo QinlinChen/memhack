@@ -249,7 +249,8 @@ void init_areas() {
 
     /* initialize regex */
     rc = regcomp(&reg, 
-        "[0-9a-fA-F]+\\-[0-9a-fA-f]+\\s+[rwxps-]+",
+        "[0-9a-fA-F]+\\-[0-9a-fA-f]+\\s+[rwxps-]+\\s+"
+        "[0-9a-fA-F]+:[0-9a-fA-F]+\\s+[0-9]+\\s+",
         REG_EXTENDED);
     if (rc != 0) {
         regerror(rc, &reg, errbuf, MAXLINE);
