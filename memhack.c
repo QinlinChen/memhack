@@ -234,16 +234,22 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
     }
 }
 
+void print_match(char *str, regmatch_t *match) {
+    for (int i = match->rm_so; i < match->rm_eo; ++i)
+        putchar(str[i]);
+    putchar('\n');
+}
+
 void init_areas() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
     int rc;
     regex_t reg;
-    regmatch_t match[3];
+    regmatch_t match[1];
     FILE *fp;
 
     /* initialize regex */
     rc = regcomp(&reg, 
-        "(\\w+)\\(.*\\)\\s*=.+<([0-9]+\\.[0-9]+)>",
+        "\\d+\\-\\d+",
         REG_EXTENDED);
     if (rc != 0) {
         regerror(rc, &reg, errbuf, MAXLINE);
@@ -258,10 +264,9 @@ void init_areas() {
 
     /* read syscall info */
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
-        puts(line);
-        // if (regexec(&reg, line, 3, match, 0) == 0) {
-
-        // }
+        if (regexec(&reg, line, 1, match, 0) == 0) {
+            print_match(line, match);
+        }
     }
 }
 
