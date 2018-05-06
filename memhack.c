@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <regex.h>
+#include <stdint.h>
 
 #define MAXLINE 1024
 
@@ -209,6 +210,20 @@ void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
     char *src = (char *)addr;
     char *dst = (char *)buf;
 
+    char *aligned = src - (long)addr % sizeof(long);
+    if (aligned != addr) {
+        long data = ptrace_peekdata(pid, aligned);
+        size_t lsize = src - aligned;
+        size_t rsize = sizeof(long) - lsize;
+        size_t minsize = (rsize < size ? rsize : size);
+        memcpy(dst, (char *)&data + lsize, minsize);
+        if (minsize == size)
+            return;
+        size -= minsize;
+        src += minsize;
+        dst += minsize;
+    }
+    
     while (size >= sizeof(long)) {
         *(long *)dst = ptrace_peekdata(pid, src);
         size -= sizeof(long);
@@ -337,13 +352,9 @@ int cmd_lookup() {
     for (int i = 0; i < G.nr_area; ++i) {
         for (char *addr = G.area[i].start; addr != G.area[i].end; ++addr) {
             char byte;
-            printf("addr %p\n", addr);
             ptrace_read(G.pid, addr, &byte, sizeof(byte));
-            if (byte == lower_byte) {
+            if (byte == lower_byte) 
                 add_list(&G.list, addr);
-                break;
-            }
-                
         }
     }
     print_list(&G.list);
