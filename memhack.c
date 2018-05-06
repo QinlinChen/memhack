@@ -256,7 +256,14 @@ int cmd_lookup() {
     //     return 0;
     // }
     // long number = atol(arg);
-    printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
+    char buf[1024];
+    ptrace_read(G.pid, (void *)0x601044, buf, 16);
+    for (int i = 0; i < 16; ++i) {
+        printf("%.2x ", buf[i]);
+    }
+    printf("\n");
+
+    // printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
     
     //printf("lookup: %ld executed\n", number);
     return 0;
@@ -277,7 +284,7 @@ int cmd_setup() {
     
     char buf[1024];
     ptrace_read(G.pid, (void *)0x601044, buf, 16);
-    for (int i = 0; i < number; ++i) {
+    for (int i = 0; i < 16; ++i) {
         printf("%.2x ", buf[i]);
     }
     printf("\n");
