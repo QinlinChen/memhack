@@ -176,13 +176,22 @@ void print_list(list_t *list, pid_t pid) {
     printf("Find %d result(s).\n", list->size);
     if (list->size == 0)
         return;
-    printf("%-16s %-4s\n", "ADDRESS", "BYTE");
+    printf("%-16s %-4s %-5s %-10s", 
+        "ADDRESS", "BYTE", "WORD", "DWORD");
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
-        unsigned char byte;
-        ptrace_read(pid, scan->addr, &byte, sizeof(byte));
-        printf("%16p %4x", scan->addr, (unsigned int)byte);
+        unsigned long data = 0;
+        unsigned char byte = 0;
+        // Attention: memory alignment
+        char *addr_end = (char *)
+            (((long)scan->addr & ~(sizeof(long) - 1)) + sizeof(long));
+        for (char *addr = scan->addr; addr != addr_end; addr++) {
+            ptrace_read(pid, scan->addr, &byte, sizeof(byte));
+            data = (data << (sizeof(byte) * 8)) + byte;
+        }
+        printf("%-16p %-4d %-5d %-10d", scan->addr, 
+            (char)data, (short)data, (int)data);
         scan = scan->next;
     }
 }
