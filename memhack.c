@@ -37,24 +37,7 @@ void ptrace_attach(pid_t pid);
 void ptrace_detach(pid_t pid);
 long ptrace_peekdata(pid_t pid, void *addr);
 void ptrace_pokedata(pid_t pid, void *addr, long data);
-
-void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
-    assert(size > 0);
-    char *src = (char *)addr;
-    char *dst = (char *)buf;
-
-    while (size - sizeof(long) >= 0) {
-        *(long *)dst = ptrace_peekdata(pid, src);
-        size -= sizeof(long);
-        dst += sizeof(long);
-        src += sizeof(long);
-    }
-
-    if (size > 0) {
-        long data = ptrace_peekdata(pid, src);
-        memcpy(dst, &data, size);
-    }
-}
+void ptrace_read(pid_t pid, void *addr, void *buf, size_t size);
 
 void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
 
@@ -211,6 +194,25 @@ void ptrace_pokedata(pid_t pid, void *addr, long data) {
         unix_error("Ptrace pokedata error");
 }
 
+void ptrace_read(pid_t pid, void *addr, void *buf, size_t size) {
+    assert(size > 0);
+    char *src = (char *)addr;
+    char *dst = (char *)buf;
+
+    while (size - sizeof(long) >= 0) {
+        *(long *)dst = ptrace_peekdata(pid, src);
+        size -= sizeof(long);
+        dst += sizeof(long);
+        src += sizeof(long);
+    }
+
+    printf("src %p\n", src);
+    if (size > 0) {
+        long data = ptrace_peekdata(pid, src);
+        memcpy(dst, &data, size);
+    }
+}
+
 int cmd_pause() {
     ptrace_attach(G.pid);
 
@@ -242,7 +244,7 @@ int cmd_lookup() {
     printf("%ld\n", ptrace_peekdata(G.pid, (void *)0x601044));
     long number = atol(arg);
     char buf[1024];
-    ptrace_read(G.pid, (void *)0x601044, buf, number);
+    ptrace_read(G.pid, (void *)0x4005f6, buf, number);
 
     for (int i = 0; i < number; ++i) {
         printf("%x ", buf[i]);
