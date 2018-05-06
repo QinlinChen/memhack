@@ -41,6 +41,7 @@ long ptrace_peekdata(pid_t pid, void *addr);
 void ptrace_pokedata(pid_t pid, void *addr, long data);
 void ptrace_read(pid_t pid, void *addr, void *buf, size_t size);
 void ptrace_write(pid_t pid, void *addr, void *buf, size_t size);
+long ptrace_bound_peekdata(pid_t pid, void *addr);
 
 /* cmd */
 int cmd_pause();
@@ -181,15 +182,7 @@ void print_list(list_t *list, pid_t pid) {
     node_t *scan = list->NIL.next;
     while (scan != &list->NIL) {
         assert(scan->next->prev == scan);
-        unsigned long data = 0;
-        unsigned char byte = 0;
-        // Attention: memory alignment
-        char *addr_end = (char *)
-            (((long)scan->addr & ~(sizeof(long) - 1)) + sizeof(long));
-        for (char *addr = addr_end; addr != scan->addr - 1; addr--) {
-            ptrace_read(pid, addr, &byte, sizeof(byte));
-            data = (data << (sizeof(byte) * 8)) + byte;
-        }
+        long data = ptrace_bound_peekdata(pid, scan->addr);
         printf("%-16p %-5d %-5d %-10d %-16ld\n", scan->addr, 
             (char)data, (short)data, (int)data, (long)data);
         scan = scan->next;
@@ -283,6 +276,21 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
         memcpy(&data, src, size);
         ptrace_pokedata(pid, dst, data);
     }
+}
+
+// Use this function to avoid reading data beyond 
+// the bound of memory section
+long ptrace_bound_peekdata(pid_t pid, void *addr) {
+    unsigned long data = 0;
+    unsigned char byte = 0;
+    
+    char *addr_end = (char *)
+        (((long)addr & ~(sizeof(long) - 1)) + sizeof(long));
+    for (char *p = addr_end; p != (char *)addr - 1; p--) {
+        ptrace_read(pid, p, &byte, sizeof(byte));
+        data = (data << (sizeof(byte) * 8)) + byte;
+    }
+    return (long)data;
 }
 
 static long regmatch_htol(char *str, regmatch_t *match) {
