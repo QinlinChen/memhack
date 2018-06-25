@@ -11,12 +11,12 @@
 
 #define MAXLINE 1024
 
-/* utilities */
+// utilities
 void unix_error(const char *msg);
 void app_error(const char *msg);
 char *readline(const char *prompt, char *buf, int size, FILE *stream);
 
-/* list */
+// list of candidate memories to modify 
 typedef struct _node_t {
     char *addr;
     struct _node_t *prev;
@@ -34,7 +34,7 @@ void remove_list(list_t *list, node_t *node);
 void filter_list(list_t *list, char byte, int (*pred)(char *, char));
 void print_list(list_t *list, pid_t pid);
 
-/* ptrace wrapper */
+// ptrace wrapper
 void ptrace_attach(pid_t pid);
 void ptrace_detach(pid_t pid);
 long ptrace_peekdata(pid_t pid, void *addr);
@@ -43,7 +43,7 @@ void ptrace_read(pid_t pid, void *addr, void *buf, size_t size);
 void ptrace_write(pid_t pid, void *addr, void *buf, size_t size);
 long ptrace_bound_peekdata(pid_t pid, void *addr);
 
-/* cmd */
+// cmd
 typedef int (*cmd_handler_t)();
 
 int cmd_pause();
@@ -66,18 +66,23 @@ struct {
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
 
-/* global */
+// global
 #define MAX_AREA 10
 
 struct {
     pid_t pid;
     long expected;
+
+    // list of candidate memories to modify 
     list_t list;
+
+    // memory areas to search and modify
     struct {
         char *start;
         char *end;
-    } area[MAX_AREA];
+    } area[MAX_AREA];   
     int nr_area;
+
     int is_attached;
 } G;
 
@@ -293,7 +298,7 @@ void ptrace_write(pid_t pid, void *addr, void *buf, size_t size) {
 }
 
 // Use this function to avoid reading data beyond 
-// the bound of memory section
+// the bound of memory section.
 long ptrace_bound_peekdata(pid_t pid, void *addr) {
     unsigned long data = 0;
     unsigned char byte = 0;
@@ -328,6 +333,8 @@ static int is_readable(char *str) { return strchr(str, 'r') != NULL; }
 static int is_writable(char *str) { return strchr(str, 'w') != NULL; }
 static int is_so(char *str)  { return strstr(str, ".so") != NULL; } 
 
+// Read memory area from /proc/[pid]/maps
+// to init G.area.
 void init_area() {
     char errbuf[MAXLINE], filepath[MAXLINE], line[MAXLINE];
     int rc;
@@ -335,7 +342,7 @@ void init_area() {
     regmatch_t match[5];
     FILE *fp;
 
-    /* initialize regex */
+    // initialize regex
     rc = regcomp(&reg, "([0-9a-fA-F]+)\\-([0-9a-fA-f]+)\\s+([rwxps-]+)\\s+"
         "[0-9a-fA-F]+\\s+[0-9a-fA-F]+:[0-9a-fA-F]+\\s+[0-9]+\\s+(.*)",
         REG_EXTENDED);
@@ -349,7 +356,7 @@ void init_area() {
     if ((fp = fopen(filepath, "r")) == NULL)
         app_error("Fail to open file");
 
-    /* match and add to area*/
+    // match and add to area
     while (readline(NULL, line, MAXLINE, fp) != NULL) {
         if (regexec(&reg, line, 5, match, 0) == 0) {
             char *perms = substr(line, match[3].rm_so, match[3].rm_eo);
