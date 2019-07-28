@@ -1,12 +1,12 @@
-# Memheck
+# Memhack
 
-Memheck is a memory hecker that modify the process's memory
+Memhack is a memory hacker that modify the process's memory
 according to PID provided. 
 Maybe you can use it to modify your game's data.
 
 ## Usage
 Before running, use `make` to build `memhack` first.
-Then, use `./memheck [PID]` to heck the process with the pid of [PID].
+Then, use `./memhack [PID]` to heck the process with the pid of [PID].
 
 Memheck has a console when running. 
 The commands that memheck enables are shown as bellow.
@@ -17,7 +17,7 @@ The commands that memheck enables are shown as bellow.
 * `setup <number>`: If there only left one candidate memory, it will set it to the `<number>` you give.
 * `exit`: Exit `memheck`.
 
-So, the basic usage of `memheck` is: 
+So, the basic usage of `memhack` is: 
 
     pause the process
     lookup the value of the memory you want to modify
