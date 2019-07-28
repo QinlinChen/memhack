@@ -6,16 +6,16 @@ Maybe you can use it to modify your game's data.
 
 ## Usage
 Before running, use `make` to build `memhack` first.
-Then, use `./memhack [PID]` to heck the process with the pid of [PID].
+Then, use `./memhack [PID]` to hack the process with the pid of [PID].
 
-Memheck has a console when running. 
-The commands that memheck enables are shown as bellow.
+Memhack has a console when running. 
+The commands that memhack enables are shown as bellow.
 
-* `pause`: Pause the process you want to heck.
+* `pause`: Pause the process you want to hack.
 * `resume`: Resume the process to run again.
 * `lookup <number>`: It will lookup memories that have the value of `<number>` and list them for you, which are called candidate memories.
 * `setup <number>`: If there only left one candidate memory, it will set it to the `<number>` you give.
-* `exit`: Exit `memheck`.
+* `exit`: Exit `memhack`.
 
 So, the basic usage of `memhack` is: 
 
